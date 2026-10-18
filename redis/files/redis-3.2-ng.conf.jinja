@@ -11,7 +11,7 @@ include {{ include }}
 
 ################################## NETWORK #####################################
 {% if redis_settings.bind is defined %}
-bind {{ redis_settings.bind }}
+bind {{ redis_settings.bind if redis_settings.bind is string else redis_settings.bind | join(" ") }}
 {%- endif %}
 {%- if redis_settings['protected-mode'] is defined %}
 protected-mode {{ redis_settings['protected-mode'] }}

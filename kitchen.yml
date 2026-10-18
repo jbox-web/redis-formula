@@ -61,7 +61,7 @@ suites:
             '*':
               - redis
       pillars_from_files:
-        redis.sls: pillar.example
+        redis.sls: test/salt/pillar/default.sls
     verifier:
       inspec_tests:
         - path: test/integration/default

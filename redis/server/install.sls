@@ -3,48 +3,6 @@ include:
 
 {% from "redis/map.jinja" import redis_settings as r with context %}
 
-    {%- if r.install_from in ('source', 'archive') %}
-
-redis_user_group:
-  group.present:
-    - name: {{ r.group }}
-  user.present:
-    - name: {{ r.user }}
-    - usergroup: True
-    - home: {{ r.home }}
-    - require:
-      - group: redis_user_group
-  file.managed:
-    - name: /etc/init/redis-server.conf
-    - template: jinja
-    - source: salt://redis/files/upstart.conf.jinja
-    - mode: '0750'
-    - user: root
-    - group: root
-    - makedirs: True
-    - context:
-        conf: /etc/redis/redis.conf
-        user: {{ r.user }}
-        bin: {{ r.bin }}
-    - require:
-      - sls: redis.common
-
-redis-log-dir:
-  file.directory:
-    - name: /var/log/redis
-    - mode: 755
-    - user: {{ r.user }}
-    - group: {{ r.group }}
-    - recurse:
-        - user
-        - group
-        - mode
-    - makedirs: True
-    - require:
-      - user: redis_user_group
-
-    {%- endif %}
-
 redis_config:
   file.managed:
     - name: {{ r.cfg_name }}
@@ -54,21 +12,49 @@ redis_config:
     {% else %}
     - source: {{ r.source_path }}
     {%- endif %}
+    {#- The file may carry `requirepass`: readable by redis only, never shown
+        in a state diff. #}
+    - user: {{ r.user }}
+    - group: {{ r.group }}
+    - mode: '0640'
+    - show_diff: False
     - makedirs: True
-
-    {%- if r.install_from in ('source', 'archive') %}
-redis-initd:
-  file.managed:
-    - name: /etc/init.d/redis
-    - template: jinja
-    - source: salt://redis/files/redis_initd.jinja
-    - mode: '0777'
-    - user: root
-    - group: root
     - require:
-      - file: redis_config
+      - pkg: install-redis
+
+{#- `dir` in redis.conf: redis refuses to start when it is missing. #}
+redis_root_dir:
+  file.directory:
+    - name: {{ r.root_dir }}
+    - user: {{ r.user }}
+    - group: {{ r.group }}
+    - mode: '0750'
+    - makedirs: True
+    - require:
+      - pkg: install-redis
     - require_in:
-      - file: redis_service
+      - service: redis_service
+
+    {%- if r.get('systemd_rw_root_dir', False) %}
+
+{#- The packaged unit runs with ProtectSystem=strict and only allows writes to
+    its own data directory: without this drop-in, RDB snapshots fail in any
+    other `root_dir`. #}
+redis_systemd_dropin:
+  file.managed:
+    - name: /etc/systemd/system/{{ r.svc_name }}.service.d/override.conf
+    - contents: |
+        [Service]
+        ReadWriteDirectories=-{{ r.root_dir }}
+    - makedirs: True
+  cmd.run:
+    - name: systemctl daemon-reload
+    - onchanges:
+      - file: redis_systemd_dropin
+    - require_in:
+      - service: redis_service
+    - watch_in:
+      - service: redis_service
     {%- endif %}
 
     {% if r.disable_transparent_huge_pages is defined and r.disable_transparent_huge_pages %}
@@ -95,11 +81,7 @@ redis_service_simple:
 
 redis_service:
   service.{{ r.svc_state }}:
-    {% if r.install_from in ('source', 'archive') %}
-    - name: {{ r.svc_name }}_{{ r.port }}
-    {% else %}
     - name: {{ r.svc_name }}
-    {% endif %}
     - enable: {{ r.svc_onboot }}
     - watch:
       - file: redis_config

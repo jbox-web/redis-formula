@@ -5,7 +5,7 @@ daemonize yes
 pidfile {{ redis_settings.pidfile }}
 port {{ redis_settings.port }}
 
-bind {{ redis_settings.bind }}
+bind {{ redis_settings.bind if redis_settings.bind is string else redis_settings.bind | join(" ") }}
 
 {% if redis_settings.unixsocket is defined %}
 unixsocket {{ redis_settings.unixsocket }}

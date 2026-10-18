@@ -54,7 +54,8 @@ now ``pre-commit`` will run automatically on each ``git commit``. ::
 Special notes
 -------------
 
-None.
+The formula installs Redis from the distribution package only; the former
+source and archive installation is gone.
 
 Todo
 ----
@@ -97,6 +98,12 @@ To use the new redis 3.2 template (more structured) add the following line to th
 
 ``source_path: salt://redis/files/redis-3.2-ng.conf.jinja``
 
+``redis.conf`` is written ``0640`` and owned by the redis user, since it may
+hold ``requirepass``, and is never shown in a state diff. ``bind`` takes a
+string or a list of addresses. The ``root_dir`` directory is created and, on
+Debian, added to the writable paths of the packaged systemd unit
+(``systemd_rw_root_dir``).
+
 For options that aren't in the template (timeout, for example in redis-2.8 template), you can use ``extra_opts``:
 
 .. code-block:: yaml
@@ -109,7 +116,7 @@ For options that aren't in the template (timeout, for example in redis-2.8 templ
 
 *Meta-state (This is a state that includes other states)*.
 
-Stop Redis daemon and remove redis package/archive.
+Stop Redis daemon and remove the redis package.
 
 ``redis.sentinel``
 ^^^^^^^^^^^^^^^^^^

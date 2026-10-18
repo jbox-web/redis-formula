@@ -18,7 +18,7 @@ pidfile {{ redis_settings.pidfile }}
 port {{ redis_settings.port }}
 
 {% if redis_settings.bind is defined %}
-bind {{ redis_settings.bind }}
+bind {{ redis_settings.bind if redis_settings.bind is string else redis_settings.bind | join(" ") }}
 {% endif -%}
 
 {% if redis_settings.unixsocket is defined %}

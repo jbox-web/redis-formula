@@ -3,7 +3,7 @@
 ---
 Debian:
   pkg_name: redis-server
-  python_dev_package: python-dev
+  systemd_rw_root_dir: true
   svc_name: redis-server
   logfile: /var/log/redis/redis-server.log
   pidfile: /var/run/redis/redis-server.pid
@@ -15,7 +15,6 @@ Debian:
     pidfile: /run/sentinel/redis-sentinel.pid
 RedHat:
   pkg_name: redis
-  python_dev_package: python-devel
   cfg_name: /etc/redis.conf
   cfg_version: '3.0'
   logfile: /var/log/redis/redis.log
@@ -44,7 +43,6 @@ FreeBSD:
 Suse:
   cfg_name: /etc/redis/default.conf
   pkg_name: redis
-  python_dev_package: python-devel
   logfile: /var/log/redis/default.log
   pidfile: /var/run/redis/default.pid
   daemonize: 'no'

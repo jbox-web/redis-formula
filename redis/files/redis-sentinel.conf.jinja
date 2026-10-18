@@ -11,7 +11,7 @@ daemonize {{ redis_settings.sentinel.daemonize }}
 pidfile {{ redis_settings.sentinel.pidfile }}
 {%- endif %}
 {%- if redis_settings.sentinel.bind is defined %}
-bind {{ redis_settings.sentinel.bind }}
+bind {{ redis_settings.sentinel.bind if redis_settings.sentinel.bind is string else redis_settings.sentinel.bind | join(" ") }}
 {%- endif %}
 {%- if redis_settings.sentinel['protected-mode'] is defined %}
 protected-mode {{ redis_settings.sentinel['protected-mode'] }}

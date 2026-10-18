@@ -4,7 +4,6 @@ include:
   - redis.server
 
 {% set cfg_version       = redis_settings.cfg_version -%}
-{% set install_from      = redis_settings.install_from -%}
 {% set user           = redis_settings.user -%}
 {% set group          = redis_settings.group -%}
 
@@ -47,11 +46,7 @@ redis_config {{ instance_name }}:
 
 redis_service {{ instance_name }}:
   service.{{ config.svc_state }}:
-    {% if install_from == 'source' %}
-    - name: {{ config.svc_name }}_{{ config.port }}
-    {% else %}
     - name: {{ config.svc_name }}
-    {% endif %}
     - enable: {{ config.svc_onboot }}
     - require:
       - file: redis_systemd_template
