@@ -17,7 +17,7 @@ redis_config:
     - user: {{ r.user }}
     - group: {{ r.group }}
     - mode: '0640'
-    - show_diff: False
+    - show_changes: False
     - makedirs: True
     - require:
       - pkg: install-redis
